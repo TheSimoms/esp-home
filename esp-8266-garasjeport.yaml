@@ -1,0 +1,86 @@
+---
+
+substitutions:
+  name: garasjeport
+  board: nodemcuv2
+
+esphome:
+  name: ${name}
+
+esp8266:
+  board: ${board}
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+ota:
+  safe_mode: true
+  password: !secret ota_password
+
+api:
+  encryption:
+    key: !secret api_encryption_key
+
+logger:
+
+output:
+  - platform: gpio
+    id: led
+    pin:
+      number: D0
+      inverted: true
+
+switch:
+  - platform: gpio
+    id: bryter
+    pin:
+      number: D1
+      inverted: true
+    restore_mode: ALWAYS_OFF
+    on_turn_on:
+      - delay: 0.5s
+      - switch.turn_off: bryter
+
+binary_sensor:
+  - platform: gpio
+    id: sensor
+    name: Garasjeport
+    device_class: garage_door
+    pin:
+      number: D2
+      mode:
+        input: true
+        pullup: true
+        output: false
+        open_drain: false
+        pulldown: false
+      inverted: false
+    filters:
+      - delayed_on: 10ms
+    disabled_by_default: false
+    on_state:
+      then:
+        - if:
+            condition:
+              binary_sensor.is_on: sensor
+            then:
+              - output.turn_on: led
+            else:
+              - output.turn_off: led
+
+cover:
+  - platform: template
+    id: garasjeport
+    name: Garasjeport
+    device_class: garage
+    lambda: |-
+      if (id(sensor).state) {
+        return COVER_OPEN;
+      } else {
+        return COVER_CLOSED;
+      }
+    open_action:
+      - switch.turn_on: bryter
+    close_action:
+      - switch.turn_on: bryter
