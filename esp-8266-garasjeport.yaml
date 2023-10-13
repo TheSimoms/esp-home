@@ -3,6 +3,8 @@
 substitutions:
   name: garasjeport
   board: nodemcuv2
+  bryter_pin: D2
+  sensor_pin: D6
 
 esphome:
   name: ${name}
@@ -35,8 +37,7 @@ switch:
   - platform: gpio
     id: bryter
     pin:
-      number: D1
-      inverted: true
+      number: ${bryter_pin}
     restore_mode: ALWAYS_OFF
     on_turn_on:
       - delay: 0.5s
@@ -48,7 +49,7 @@ binary_sensor:
     name: Garasjeport
     device_class: garage_door
     pin:
-      number: D2
+      number: ${sensor_pin}
       mode:
         input: true
         pullup: true
